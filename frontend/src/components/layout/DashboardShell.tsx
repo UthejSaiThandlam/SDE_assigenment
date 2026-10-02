@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { AmbientBackground } from "./AmbientBackground";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -18,7 +19,10 @@ export function DashboardShell({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 transition-colors">
+    <div className="relative min-h-screen flex bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 transition-colors selection:bg-blue-500/20">
+      {/* Ambient Flowing Glowing Background Graphics */}
+      <AmbientBackground />
+
       {/* Sidebar */}
       <Sidebar
         isOpenMobile={mobileMenuOpen}
@@ -26,7 +30,7 @@ export function DashboardShell({
       />
 
       {/* Main Area */}
-      <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
+      <div className="relative z-10 flex-1 lg:pl-64 flex flex-col min-w-0">
         <Header
           searchQuery={searchQuery}
           onSearchChange={onSearchChange}

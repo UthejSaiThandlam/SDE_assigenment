@@ -10,9 +10,13 @@ export class NewsService {
         const newsCategory = category === "finance" ? "business" : category === "ai" ? "technology" : category || "technology";
         const url = query
           ? `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&pageSize=12&apiKey=${apiKey}`
-          : `https://newsapi.org/v2/top-headlines?category=${newsCategory}&pageSize=12&apiKey=${apiKey}`;
+          : `https://newsapi.org/v2/top-headlines?country=us&category=${newsCategory}&pageSize=12&apiKey=${apiKey}`;
 
-        const res = await fetch(url);
+        const res = await fetch(url, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          },
+        });
         if (res.ok) {
           const data: any = await res.json();
           if (data.articles && data.articles.length > 0) {

@@ -9,6 +9,7 @@ import {
   setLiveUpdatesEnabled,
 } from "@/store/preferencesSlice";
 import { ViewMode } from "@/types/content";
+import { UserProfileModal } from "@/components/modals/UserProfileModal";
 import {
   Search,
   X,
@@ -40,6 +41,7 @@ export function Header({
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   const [inputVal, setInputVal] = useState(searchQuery);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
     setInputVal(searchQuery);
@@ -176,23 +178,25 @@ export function Header({
 
           {/* User Profile Avatar / Sign In Link */}
           {isAuthenticated && user ? (
-            <Link
-              href="/settings"
-              className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800 group"
-              title="Account Settings"
+            <button
+              type="button"
+              onClick={() => setIsProfileOpen(true)}
+              className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800 group cursor-pointer text-left"
+              title="Click to view full user profile & session telemetry"
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-bold text-xs flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-bold text-xs flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform ring-2 ring-transparent group-hover:ring-blue-500/30">
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div className="hidden xl:block text-left">
-                <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 leading-tight">
+                <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   {user.name}
                 </div>
-                <div className="text-[10px] text-emerald-500 font-medium leading-none">
+                <div className="text-[10px] text-emerald-500 font-medium leading-none flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   JWT Verified
                 </div>
               </div>
-            </Link>
+            </button>
           ) : (
             <Link
               href="/login"
@@ -204,6 +208,12 @@ export function Header({
           )}
         </div>
       </div>
+
+      {/* User Profile & Telemetry Modal */}
+      <UserProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+      />
     </header>
   );
 }

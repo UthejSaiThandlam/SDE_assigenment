@@ -1,4 +1,7 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { ContentItem } from "@/types/content";
 import { X, Sparkles, CheckCircle2, TrendingUp, Clock, Award } from "lucide-react";
 
@@ -8,7 +11,13 @@ interface ExplainabilityModalProps {
 }
 
 export function ExplainabilityModal({ item, onClose }: ExplainabilityModalProps) {
-  if (!item) return null;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!item || !mounted) return null;
 
   const explanation = item.scoreExplanation || {
     totalScore: item.score || 75,
@@ -27,8 +36,11 @@ export function ExplainabilityModal({ item, onClose }: ExplainabilityModalProps)
   const progressBg =
     score >= 80 ? "bg-emerald-500" : score >= 60 ? "bg-blue-500" : "bg-amber-500";
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={onClose}
+    >
       <div
         className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 overflow-hidden relative"
         onClick={(e) => e.stopPropagation()}
@@ -148,6 +160,7 @@ export function ExplainabilityModal({ item, onClose }: ExplainabilityModalProps)
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

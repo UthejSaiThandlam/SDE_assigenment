@@ -15,9 +15,14 @@ export async function GET(request: Request) {
       const newsCategory = category === "finance" ? "business" : category === "ai" ? "technology" : category || "technology";
       const newsUrl = query
         ? `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&pageSize=10&apiKey=${apiKey}`
-        : `https://newsapi.org/v2/top-headlines?category=${newsCategory}&pageSize=10&apiKey=${apiKey}`;
+        : `https://newsapi.org/v2/top-headlines?country=us&category=${newsCategory}&pageSize=10&apiKey=${apiKey}`;
 
-      const res = await fetch(newsUrl, { next: { revalidate: 300 } });
+      const res = await fetch(newsUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        },
+        next: { revalidate: 300 },
+      });
       if (res.ok) {
         const json = await res.json();
         if (json.articles && json.articles.length > 0) {

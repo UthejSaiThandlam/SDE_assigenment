@@ -8,6 +8,7 @@ import { toggleCategory } from "@/store/preferencesSlice";
 import { logout } from "@/store/authSlice";
 import { ContentCategory } from "@/types/content";
 import { FeedReportModal } from "@/components/modals/FeedReportModal";
+import { UserProfileModal } from "@/components/modals/UserProfileModal";
 import { useGetFeedQuery } from "@/store/contentApi";
 import {
   Compass,
@@ -49,6 +50,7 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Load feed items for report
   const { data: rawFeed } = useGetFeedQuery();
@@ -189,25 +191,33 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
       {/* Footer User / Authentication Section */}
       <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 px-1">
         {isAuthenticated && user ? (
-          <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 flex items-center justify-between">
+          <div
+            onClick={() => setIsProfileOpen(true)}
+            className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500/50 flex items-center justify-between cursor-pointer transition-all group"
+            title="Click to view full user profile & session telemetry"
+          >
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+                <div className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   {user.name}
                 </div>
-                <div className="text-[10px] text-emerald-500 font-medium truncate">
+                <div className="text-[10px] text-emerald-500 font-medium truncate flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   JWT Verified
                 </div>
               </div>
             </div>
 
             <button
-              onClick={handleLogout}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleLogout();
+              }}
               title="Sign Out"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -229,6 +239,12 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
         onClose={() => setIsReportOpen(false)}
         items={rawFeed || []}
         preferences={preferences}
+      />
+
+      {/* User Profile & Telemetry Modal */}
+      <UserProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
       />
     </aside>
   );
