@@ -73,7 +73,6 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
         activeCategories: preferences.categories,
         viewMode: preferences.viewMode,
         liveUpdatesEnabled: preferences.liveUpdatesEnabled,
-        historyTracking: preferences.historyTracking,
       },
       savedBookmarksCount: favorites.length,
       savedBookmarks: favorites.map((f) => ({

@@ -8,6 +8,7 @@ import { useAppSelector } from "@/store/hooks";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Flame, TrendingUp, Star, Award, Zap } from "lucide-react";
 
+
 export default function TrendingPage() {
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce(searchInput, 400);

@@ -1,40 +1,30 @@
-"use client";
-
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { ContentItem, ViewMode } from "@/types/content";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { toggleFavorite } from "@/store/favoritesSlice";
+import { recordInteraction } from "@/store/adaptiveSlice";
+import { addNotification } from "@/store/notificationSlice";
 import {
-  toggleReadLater,
-  recordInteraction,
-  hideItem,
-} from "@/store/adaptiveSlice";
-import {
-  Bookmark,
-  Star,
+  Heart,
   ExternalLink,
   HelpCircle,
-  GripVertical,
-  Heart,
-  MessageCircle,
-  Share2,
-  Clock,
-  Radio,
   Zap,
-  MoreVertical,
-  EyeOff,
-  Copy,
-  Check,
+  Radio,
+  Film,
+  MessageSquare,
+  Clock,
+  Sparkles,
+  GripVertical,
+  Star,
 } from "lucide-react";
-import confetti from "canvas-confetti";
 
 interface ContentCardProps {
   item: ContentItem;
   viewMode?: ViewMode;
   onExplain?: (item: ContentItem) => void;
   onQuickBrief?: (item: ContentItem) => void;
-  dragHandleProps?: Record<string, any>;
   isDragging?: boolean;
+  dragHandleProps?: Record<string, any>;
 }
 
 export function ContentCard({
@@ -42,79 +32,62 @@ export function ContentCard({
   viewMode = "comfortable",
   onExplain,
   onQuickBrief,
-  dragHandleProps,
   isDragging,
+  dragHandleProps,
 }: ContentCardProps) {
   const dispatch = useAppDispatch();
-  const favorites = useAppSelector((state) => state.favorites.items);
-  const readLaterIds = useAppSelector((state) => state.adaptive.readLaterIds);
-
-  const isFavorited = favorites.some((fav) => fav.id === item.id);
-  const isReadLater = readLaterIds.includes(item.id);
+  const isFavorited = useAppSelector((state) =>
+    state.favorites.items.some((fav) => fav.id === item.id)
+  );
 
   const [imgError, setImgError] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close menu on click outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-    if (menuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
+  // Format type badges
+  const getTypeBadge = () => {
+    switch (item.type) {
+      case "news":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 backdrop-blur-xs">
+            <Radio className="w-3 h-3" />
+            <span>News</span>
+          </span>
+        );
+      case "movie":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 backdrop-blur-xs">
+            <Film className="w-3 h-3" />
+            <span>Movie</span>
+          </span>
+        );
+      case "social":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 backdrop-blur-xs">
+            <MessageSquare className="w-3 h-3" />
+            <span>Social</span>
+          </span>
+        );
     }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [menuOpen]);
+  };
 
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
     dispatch(toggleFavorite(item));
 
     if (!isFavorited) {
-      dispatch(recordInteraction({ category: item.category, type: "save" }));
-      try {
-        confetti({
-          particleCount: 26,
-          spread: 45,
-          origin: {
-            x: e.clientX / window.innerWidth,
-            y: e.clientY / window.innerHeight,
-          },
-          colors: ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"],
-        });
-      } catch (err) {
-        // Safe ignore
-      }
+      dispatch(
+        recordInteraction({
+          category: item.category,
+          type: "save",
+        })
+      );
+      dispatch(
+        addNotification({
+          title: "Saved to Library",
+          description: `"${item.title.slice(0, 32)}..." added to your personal favorites.`,
+          type: "adaptive",
+        })
+      );
     }
-  };
-
-  const handleToggleReadLater = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    dispatch(toggleReadLater(item.id));
-    if (!isReadLater) {
-      dispatch(recordInteraction({ category: item.category, type: "save" }));
-    }
-  };
-
-  const handleNotInterested = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setMenuOpen(false);
-    dispatch(hideItem(item.id));
-    dispatch(recordInteraction({ category: item.category, type: "notInterested" }));
-  };
-
-  const handleCopyLink = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(item.url || window.location.href);
-    setCopied(true);
-    setTimeout(() => {
-      setCopied(false);
-      setMenuOpen(false);
-    }, 1500);
   };
 
   const handleOpenSource = () => {
@@ -122,51 +95,35 @@ export function ContentCard({
       recordInteraction({
         category: item.category,
         type: "click",
-        minutes: item.type === "movie" ? 1 : 3,
+        minutes: 2,
       })
     );
   };
 
-  const getTypeBadge = () => {
-    switch (item.type) {
-      case "news":
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-            <Radio className="w-3 h-3" /> News
-          </span>
-        );
-      case "movie":
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-            <Star className="w-3 h-3 fill-purple-500/30" /> Movie
-          </span>
-        );
-      case "social":
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-            <MessageCircle className="w-3 h-3" /> Social
-          </span>
-        );
-    }
-  };
-
-  const formatRelativeTime = (isoString: string) => {
+  // Format time display
+  const formattedTime = () => {
     try {
-      const diffMs = Date.now() - new Date(isoString).getTime();
+      const now = new Date();
+      const past = new Date(item.publishedAt);
+      const diffMs = now.getTime() - past.getTime();
       const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-      if (diffHours < 1) {
-        const diffMins = Math.max(1, Math.floor(diffMs / (1000 * 60)));
-        return `${diffMins}m ago`;
-      }
+
+      if (diffHours < 1) return "Just now";
       if (diffHours < 24) return `${diffHours}h ago`;
       const diffDays = Math.floor(diffHours / 24);
       return `${diffDays}d ago`;
     } catch {
-      return "recently";
+      return "Recently";
     }
   };
 
-  const estReadTime = item.type === "movie" ? "1m" : "2m";
+  // Estimated reading or runtime
+  const estReadTime = item.type === "movie" ? "2h runtime" : "3m read";
+
+  // Relevance match percent badge
+  const matchPercent = item.score
+    ? Math.min(99, Math.max(65, Math.round(item.score * 100)))
+    : 80;
 
   // Compact layout
   if (viewMode === "compact") {
@@ -278,104 +235,70 @@ export function ContentCard({
             src={item.image}
             alt={item.title}
             onError={() => setImgError(true)}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+            loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
-            <Radio className="w-10 h-10 text-slate-400" />
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-tr from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 text-slate-400">
+            {item.type === "news" ? (
+              <Radio className="w-10 h-10 stroke-[1.5]" />
+            ) : item.type === "movie" ? (
+              <Film className="w-10 h-10 stroke-[1.5]" />
+            ) : (
+              <MessageSquare className="w-10 h-10 stroke-[1.5]" />
+            )}
           </div>
         )}
 
-        {/* Floating Type & Category Pill */}
-        <div className="absolute top-3 left-3 flex items-center gap-1.5">
-          {getTypeBadge()}
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-black/60 backdrop-blur-md text-white capitalize">
-            {item.category}
-          </span>
-        </div>
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
 
-        {/* Top Right Actions: Drag Handle & Quick Menu */}
-        <div className="absolute top-3 right-3 flex items-center gap-1.5">
-          {dragHandleProps && (
-            <div
-              {...dragHandleProps}
-              className="p-1.5 rounded-lg bg-black/50 backdrop-blur-md text-white/80 hover:text-white cursor-grab active:cursor-grabbing transition-colors"
-              title="Drag to reorder card"
-            >
-              <GripVertical className="w-4 h-4" />
-            </div>
-          )}
+        {/* Top Badges (Category & Drag Handle) */}
+        <div className="absolute top-3 inset-x-3 flex items-center justify-between pointer-events-auto">
+          <div className="flex items-center gap-1.5">
+            {getTypeBadge()}
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-900/70 text-slate-200 backdrop-blur-md capitalize border border-white/10">
+              {item.category}
+            </span>
+          </div>
 
-          <div className="relative" ref={menuRef}>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setMenuOpen(!menuOpen);
-              }}
-              className="p-1.5 rounded-lg bg-black/50 backdrop-blur-md text-white/80 hover:text-white transition-colors cursor-pointer"
-              title="More options"
-            >
-              <MoreVertical className="w-4 h-4" />
-            </button>
-
-            {menuOpen && (
+          <div className="flex items-center gap-1">
+            {dragHandleProps && (
               <div
-                className="absolute right-0 mt-1 w-44 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100"
-                onClick={(e) => e.stopPropagation()}
+                {...dragHandleProps}
+                className="p-1 rounded-md bg-slate-900/60 hover:bg-slate-900/90 text-white/80 hover:text-white backdrop-blur-md cursor-grab active:cursor-grabbing transition-colors"
+                title="Drag card to reorder your personalized queue"
               >
-                <button
-                  onClick={handleToggleReadLater}
-                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
-                >
-                  <Bookmark className={`w-3.5 h-3.5 ${isReadLater ? "fill-purple-600 text-purple-600" : ""}`} />
-                  <span>{isReadLater ? "Remove Read Later" : "Read Later"}</span>
-                </button>
-
-                <button
-                  onClick={handleCopyLink}
-                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? "Copied!" : "Copy Link"}</span>
-                </button>
-
-                <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
-
-                <button
-                  onClick={handleNotInterested}
-                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors text-left"
-                >
-                  <EyeOff className="w-3.5 h-3.5" />
-                  <span>Not Interested (-4)</span>
-                </button>
+                <GripVertical className="w-4 h-4" />
               </div>
             )}
           </div>
         </div>
 
-        {/* Score indicator badge */}
-        {item.score && (
-          <div className="absolute bottom-3 right-3 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[11px] font-semibold text-emerald-400 border border-emerald-500/30">
-            {item.score}% Match
+        {/* Match Percentage Pill */}
+        <div className="absolute bottom-3 right-3">
+          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-950/80 border border-emerald-500/40 text-[10px] font-bold text-emerald-300 backdrop-blur-md shadow-xs">
+            <Sparkles className="w-2.5 h-2.5" />
+            <span>{matchPercent}% Match</span>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Body Content */}
-      <div className="p-5 flex-1 flex flex-col justify-between">
+      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
         <div>
-          {/* Metadata Subheader */}
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2.5">
-            <span className="font-medium truncate">{item.source}</span>
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" />
-                {estReadTime}
-              </span>
-              <span>•</span>
-              <span>{formatRelativeTime(item.publishedAt)}</span>
-            </div>
+          {/* Metadata Subheading */}
+          <div className="flex items-center gap-2 text-xs text-slate-400 mb-2">
+            <span className="font-medium text-slate-600 dark:text-slate-300">
+              {item.source}
+            </span>
+            <span>•</span>
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {estReadTime}
+            </span>
+            <span>•</span>
+            <span>{formattedTime()}</span>
           </div>
 
           {/* Title */}
@@ -393,7 +316,7 @@ export function ContentCard({
             {item.metadata?.rating && (
               <span className="inline-flex items-center gap-1 font-semibold text-amber-500">
                 <Star className="w-3.5 h-3.5 fill-amber-500" />
-                {item.metadata.rating.toFixed(1)} TMDB
+                {item.metadata.rating.toFixed(1)} Rating
               </span>
             )}
 
@@ -417,23 +340,23 @@ export function ContentCard({
         </div>
 
         {/* Card Footer Actions */}
-        <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
+        <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-1 flex-wrap">
+          <div className="flex items-center gap-1 shrink-0">
             {onExplain && (
               <button
                 onClick={() => onExplain(item)}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1 px-1.5 py-1 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
                 title="Understand why this item was ranked for your feed"
               >
                 <HelpCircle className="w-3.5 h-3.5 text-blue-500" />
-                <span>Why this?</span>
+                <span className="hidden sm:inline">Why this?</span>
               </button>
             )}
 
             {onQuickBrief && (
               <button
                 onClick={() => onQuickBrief(item)}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 transition-colors cursor-pointer shrink-0"
                 title="20-Second Takeaway Brief"
               >
                 <Zap className="w-3.5 h-3.5 fill-amber-500/20" />
@@ -444,7 +367,7 @@ export function ContentCard({
             <button
               onClick={handleToggleFavorite}
               title={isFavorited ? "Saved in Favorites" : "Save Favorite"}
-              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+              className={`p-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
                 isFavorited
                   ? "text-rose-500 bg-rose-50 dark:bg-rose-950/40"
                   : "text-slate-400 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -459,7 +382,7 @@ export function ContentCard({
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleOpenSource}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 text-xs font-semibold transition-colors shadow-xs"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 text-xs font-semibold transition-colors shadow-xs shrink-0"
           >
             <span>{item.type === "movie" ? "Watch" : "Open"}</span>
             <ExternalLink className="w-3 h-3" />

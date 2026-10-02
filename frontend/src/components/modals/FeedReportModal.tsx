@@ -173,7 +173,7 @@ export function FeedReportModal({
               <Film className="w-5 h-5 text-purple-500 shrink-0" />
               <div>
                 <span className="font-bold text-sm text-slate-900 dark:text-slate-100">{movieCount}</span>
-                <span className="text-xs block text-slate-400">TMDB Cinema</span>
+                <span className="text-xs block text-slate-400">Watchmode Cinema</span>
               </div>
             </div>
 

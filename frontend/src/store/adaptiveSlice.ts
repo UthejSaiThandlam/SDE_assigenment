@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ContentCategory } from "@/types/content";
 
-export interface AdaptiveInterests {
+export interface AdaptiveInterests extends Record<string, number> {
   technology: number;
   ai: number;
   finance: number;

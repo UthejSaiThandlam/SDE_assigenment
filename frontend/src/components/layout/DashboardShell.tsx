@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAppSelector } from "@/store/hooks";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { AmbientBackground } from "./AmbientBackground";
+import { Sparkles } from "lucide-react";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -16,7 +19,31 @@ export function DashboardShell({
   searchQuery,
   onSearchChange,
 }: DashboardShellProps) {
+  const router = useRouter();
+  const { isAuthenticated, isHydrated } = useAppSelector((state) => state.auth);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (isHydrated && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isHydrated, isAuthenticated, router]);
+
+  // While checking hydration, show a sleek loading state to prevent flash
+  if (!isHydrated || !isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100">
+        <div className="flex flex-col items-center gap-4 animate-pulse">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/25">
+            <Sparkles className="w-6 h-6 animate-spin" style={{ animationDuration: "3s" }} />
+          </div>
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-400">
+            Securing Session...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen flex bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 transition-colors selection:bg-blue-500/20">

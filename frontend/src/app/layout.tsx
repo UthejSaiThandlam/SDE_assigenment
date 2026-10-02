@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AuraPulse | Personalized Content & Intelligence Dashboard",
   description:
-    "Production-grade personalized content dashboard aggregating News, TMDB Movies, and Social streams with explainable algorithmic scoring and persistent state.",
+    "Production-grade personalized content dashboard aggregating News, Watchmode Cinema, and Social streams with explainable algorithmic scoring and persistent state.",
 };
 
 export default function RootLayout({

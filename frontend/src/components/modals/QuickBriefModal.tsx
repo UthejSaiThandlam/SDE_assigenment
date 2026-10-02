@@ -53,7 +53,7 @@ export function QuickBriefModal({ item, onClose }: QuickBriefModalProps) {
     const takeaways: string[] = [];
 
     if (content.type === "movie") {
-      takeaways.push(`Cinema highlight starring notable talent with ${content.metadata?.rating ? `${content.metadata.rating.toFixed(1)}/10 TMDB rating` : "high audience anticipation"}.`);
+      takeaways.push(`Cinema highlight starring notable talent with ${content.metadata?.rating ? `${content.metadata.rating.toFixed(1)}/10 Watchmode rating` : "high audience anticipation"}.`);
       takeaways.push(desc.length > 80 ? desc.slice(0, 110) + "..." : desc);
       takeaways.push("Available for streaming exploration and watchlist addition.");
     } else if (content.type === "news") {

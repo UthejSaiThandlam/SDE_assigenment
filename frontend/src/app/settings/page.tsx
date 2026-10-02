@@ -38,12 +38,12 @@ const AVAILABLE_CATEGORIES: { id: ContentCategory; label: string; desc: string; 
   { id: "ai", label: "AI & Autonomous Agents", desc: "Large language models, reinforcement learning & agentic loops", icon: <Brain className="w-4 h-4" /> },
   { id: "finance", label: "Finance & Fintech", desc: "Markets, interest rates, capital flows & cryptography", icon: <DollarSign className="w-4 h-4" /> },
   { id: "sports", label: "Sports & Racing", desc: "Motorsport, Premier League biometrics & athletics", icon: <Trophy className="w-4 h-4" /> },
-  { id: "entertainment", label: "Cinema & Arts", desc: "TMDB trending blockbusters, visionary directors & cinema", icon: <Clapperboard className="w-4 h-4" /> },
+  { id: "entertainment", label: "Cinema & Arts", desc: "Live cinema releases and streaming availability via Watchmode", icon: <Clapperboard className="w-4 h-4" /> },
 ];
 
 const AVAILABLE_TYPES: { id: ContentType; label: string; desc: string; icon: React.ReactNode }[] = [
   { id: "news", label: "News Articles", desc: "Live headlines from verified publications", icon: <Radio className="w-4 h-4" /> },
-  { id: "movie", label: "TMDB Movies", desc: "Cinema ratings, posters and release overviews", icon: <Film className="w-4 h-4" /> },
+  { id: "movie", label: "Watchmode Movies", desc: "Live cinema releases, streaming availability and ratings via Watchmode", icon: <Film className="w-4 h-4" /> },
   { id: "social", label: "Social Feeds", desc: "Curated engineering & tech influencer discourse", icon: <MessageSquare className="w-4 h-4" /> },
 ];
 

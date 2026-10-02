@@ -13,36 +13,68 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isHydrated: boolean;
   error: string | null;
 }
 
-const TOKEN_KEY = "aurapulse_auth_token";
-const USER_KEY = "aurapulse_auth_user";
+export const TOKEN_KEY = "aurapulse_auth_token";
+export const USER_KEY = "aurapulse_auth_user";
 
 const initialState: AuthState = {
   user: null,
   token: null,
   isAuthenticated: false,
   isLoading: false,
+  isHydrated: false,
   error: null,
 };
+
+// Helper to check if a JWT is expired client-side
+function isTokenExpired(token: string): boolean {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return true;
+    const payload = JSON.parse(atob(parts[1]));
+    if (payload.exp && Date.now() >= payload.exp * 1000) {
+      return true;
+    }
+    return false;
+  } catch {
+    return true;
+  }
+}
 
 export const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
     hydrateAuth: (state) => {
+      state.isHydrated = true;
       if (typeof window !== "undefined") {
         try {
           const token = localStorage.getItem(TOKEN_KEY);
           const savedUser = localStorage.getItem(USER_KEY);
           if (token && savedUser) {
-            state.token = token;
-            state.user = JSON.parse(savedUser);
-            state.isAuthenticated = true;
+            // Check expiry
+            if (isTokenExpired(token)) {
+              localStorage.removeItem(TOKEN_KEY);
+              localStorage.removeItem(USER_KEY);
+              state.token = null;
+              state.user = null;
+              state.isAuthenticated = false;
+            } else {
+              state.token = token;
+              state.user = JSON.parse(savedUser);
+              state.isAuthenticated = true;
+            }
+          } else {
+            state.isAuthenticated = false;
+            state.token = null;
+            state.user = null;
           }
         } catch (e) {
           console.warn("Failed to hydrate auth state from localStorage", e);
+          state.isAuthenticated = false;
         }
       }
     },
@@ -54,6 +86,7 @@ export const authSlice = createSlice({
       state.user = user;
       state.token = token;
       state.isAuthenticated = true;
+      state.isHydrated = true;
       state.isLoading = false;
       state.error = null;
 
@@ -70,6 +103,7 @@ export const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
+      state.isHydrated = true;
       state.isLoading = false;
       state.error = null;
 

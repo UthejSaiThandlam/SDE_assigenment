@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -25,7 +25,9 @@ import {
 export default function LoginPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { isLoading, error } = useAppSelector((state) => state.auth);
+  const { isLoading, error, isAuthenticated, isHydrated } = useAppSelector(
+    (state) => state.auth
+  );
 
   const [mode, setMode] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
@@ -33,6 +35,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [clientError, setClientError] = useState<string | null>(null);
+
+  // If already authenticated, redirect to dashboard
+  useEffect(() => {
+    if (isHydrated && isAuthenticated) {
+      router.replace("/");
+    }
+  }, [isHydrated, isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,14 +120,14 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2.5 group mb-3">
+          <div className="inline-flex items-center gap-2.5 group mb-3">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform">
               <Sparkles className="w-5 h-5" />
             </div>
             <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-slate-100">
               Aura<span className="text-blue-600 dark:text-blue-400">Pulse</span>
             </span>
-          </Link>
+          </div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
             {mode === "login" ? "Welcome back" : "Create your account"}
           </h1>
@@ -155,7 +164,7 @@ export default function LoginPage() {
                 setMode("login");
                 setClientError(null);
               }}
-              className={`py-2 rounded-lg transition-all ${
+              className={`py-2 rounded-lg transition-all cursor-pointer ${
                 mode === "login"
                   ? "bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs"
                   : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
@@ -169,7 +178,7 @@ export default function LoginPage() {
                 setMode("register");
                 setClientError(null);
               }}
-              className={`py-2 rounded-lg transition-all ${
+              className={`py-2 rounded-lg transition-all cursor-pointer ${
                 mode === "register"
                   ? "bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs"
                   : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
@@ -247,7 +256,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />
@@ -273,16 +282,6 @@ export default function LoginPage() {
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
             <span>JWT signed 7-day token stored locally</span>
           </div>
-        </div>
-
-        {/* Back Link */}
-        <div className="text-center mt-6">
-          <Link
-            href="/"
-            className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
-          >
-            ← Back to Dashboard
-          </Link>
         </div>
       </div>
     </div>

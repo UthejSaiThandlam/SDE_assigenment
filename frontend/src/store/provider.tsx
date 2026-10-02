@@ -8,7 +8,7 @@ import {
   setHydratedPreferences,
 } from "./preferencesSlice";
 import { FAVORITES_STORAGE_KEY, setHydratedFavorites } from "./favoritesSlice";
-import { hydrateAuth } from "./authSlice";
+import { hydrateAuth, logout } from "./authSlice";
 import { useAppSelector } from "./hooks";
 
 function ThemeSynchronizer() {
@@ -55,9 +55,26 @@ export function ReduxProvider({ children }: { children: React.ReactNode }) {
       console.error("Hydration error for favorites:", e);
     }
 
-    // 3. Hydrate Auth
+    // 3. Hydrate Auth and verify token with backend/server
     try {
       store.dispatch(hydrateAuth());
+      const state = store.getState();
+      const token = state.auth.token;
+
+      if (token) {
+        fetch("/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then((res) => {
+            if (!res.ok) {
+              // Token invalid or expired, log out cleanly
+              store.dispatch(logout());
+            }
+          })
+          .catch((err) => {
+            console.warn("Background auth verification check skipped:", err);
+          });
+      }
     } catch (e) {
       console.error("Hydration error for auth:", e);
     }

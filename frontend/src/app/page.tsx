@@ -11,6 +11,7 @@ import {
   calculateTotalReadingTime,
 } from "@/lib/personalization";
 import { useDebounce } from "@/hooks/useDebounce";
+
 import {
   toggleCategory,
   toggleContentType,
@@ -61,7 +62,7 @@ export default function DashboardPage() {
   const [isAdaptiveModalOpen, setIsAdaptiveModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // RTK Query unified feed
+  // RTK Query — unified feed (news + Watchmode movies + social)
   const { data: rawFeed, isLoading, isError, refetch } = useGetFeedQuery({
     query: debouncedSearch,
   });
@@ -234,9 +235,9 @@ export default function DashboardPage() {
         )}
 
         {/* Stream Filter Controls Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
           {/* Content Type Tabs */}
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700/60 text-xs font-semibold">
+          <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700/60 text-xs font-semibold shrink-0">
             <button
               onClick={() => setActiveTypeTab("all")}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${

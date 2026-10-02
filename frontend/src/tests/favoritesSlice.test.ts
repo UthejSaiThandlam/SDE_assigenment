@@ -25,7 +25,7 @@ const sampleItem2: ContentItem = {
   category: "entertainment",
   url: "https://example.com/2",
   publishedAt: new Date().toISOString(),
-  source: "TMDB",
+  source: "Watchmode",
 };
 
 describe("Redux favoritesSlice", () => {
