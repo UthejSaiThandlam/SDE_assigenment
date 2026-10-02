@@ -208,31 +208,31 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
             </div>
           </div>
 
-          {/* Session & NewsAPI Key Card */}
+          {/* Multi-Source API Stream Gateway Card */}
           <div className="p-4 rounded-2xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40">
             <div className="flex items-center gap-2 mb-2">
               <Key className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               <span className="text-xs font-bold text-blue-900 dark:text-blue-200">
-                Connected NewsAPI Engine
+                Connected Stream Gateways
               </span>
             </div>
-            <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1">
+            <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1.5">
               <div className="flex items-center justify-between">
-                <span>Status:</span>
+                <span>NewsAPI & Movie Feeds:</span>
                 <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" /> Live & Authenticated
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span>Active API Key:</span>
+                <span>Credential Source:</span>
                 <span className="font-mono text-[11px] text-slate-700 dark:text-slate-300">
-                  d82cb2bae3b...72040
+                  Environment (.env / secure)
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span>JWT Protocol:</span>
+                <span>Security Protocol:</span>
                 <span className="font-mono text-[11px] text-slate-700 dark:text-slate-300">
-                  HS256 Signed Bearer
+                  HS256 Signed JWT Bearer
                 </span>
               </div>
             </div>
