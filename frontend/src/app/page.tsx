@@ -133,19 +133,6 @@ export default function DashboardPage() {
               recommendations, and community pulse. Ranked transparently to your
               active interests.
             </p>
-
-            {/* Quick Preference Tags in Banner */}
-            <div className="pt-2 flex flex-wrap items-center gap-2">
-              <span className="text-xs text-blue-200 font-medium">Tuned to:</span>
-              {preferences.categories.map((cat) => (
-                <span
-                  key={cat}
-                  className="px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-xs font-medium text-white capitalize"
-                >
-                  {cat}
-                </span>
-              ))}
-            </div>
           </div>
         </div>
 
