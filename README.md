@@ -46,16 +46,21 @@ Assignement_sde/
 2. **Transparent Personalization Engine**: Calculates a composite relevance score (0–100) per item based on user topic preferences, recency, and authority. Every card includes a "Why this?" inspector detailing its score breakdown.
 3. **Interactive Feed Reordering**: Drag-and-drop sortable cards powered by `@dnd-kit` with layout persistence in Redux and `localStorage`.
 4. **Debounced Search**: Optimized 400ms debounced search filtering across titles, descriptions, hashtags, and authors.
-5. **Favorites Library**: Bookmarking system with duplicate prevention and session persistence.
-6. **Customizable Density & Theming**: Switch between Comfortable, Compact, and Grid layouts with dark and light mode support.
+5. **JWT Authentication & Demo Mode**: Token-based user authentication (`/login`) with signed JWT tokens, role badges, and 1-click demo login.
+6. **Feed Analytics & Audit Report**: Built-in modal and downloadable JSON export detailing stream composition, topic distribution, and relevance metrics.
+7. **Favorites Library**: Bookmarking system with duplicate prevention and session persistence.
+8. **Customizable Density & Theming**: Switch between Comfortable, Compact, and Grid layouts with dark and light mode support.
 
 ---
 
 ## 🔌 Backend API Specification
 
-| Method | Endpoint | Query Parameters | Description |
+| Method | Endpoint | Query / Body | Description |
 |---|---|---|---|
 | `GET` | `/api/health` | None | Service status and timestamp |
+| `POST` | `/api/auth/login` | `{ email, password }` | Authenticates user and returns signed JWT token |
+| `POST` | `/api/auth/register` | `{ name, email, password }` | Registers user and issues signed JWT token |
+| `GET` | `/api/auth/me` | `Authorization: Bearer <token>` | Validates token and returns user profile |
 | `GET` | `/api/feed` | `q` (string), `category` (string), `type` (string) | Aggregated, filtered multi-source feed |
 | `GET` | `/api/news` | `category` (string), `q` (string) | News articles with live API or fallback |
 | `GET` | `/api/movies` | `q` (string) | TMDB movie recommendations or fallback |
