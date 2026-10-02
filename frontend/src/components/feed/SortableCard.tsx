@@ -10,9 +10,15 @@ interface SortableCardProps {
   item: ContentItem;
   viewMode?: ViewMode;
   onExplain?: (item: ContentItem) => void;
+  onQuickBrief?: (item: ContentItem) => void;
 }
 
-export function SortableCard({ item, viewMode, onExplain }: SortableCardProps) {
+export function SortableCard({
+  item,
+  viewMode,
+  onExplain,
+  onQuickBrief,
+}: SortableCardProps) {
   const {
     attributes,
     listeners,
@@ -34,6 +40,7 @@ export function SortableCard({ item, viewMode, onExplain }: SortableCardProps) {
         item={item}
         viewMode={viewMode}
         onExplain={onExplain}
+        onQuickBrief={onQuickBrief}
         dragHandleProps={{ ...attributes, ...listeners }}
         isDragging={isDragging}
       />

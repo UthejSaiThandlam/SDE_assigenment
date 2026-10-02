@@ -1,36 +1,104 @@
-# Personalized Content Dashboard
+# AuraPulse — Personalized Content & Intelligence Dashboard
 
-A full-stack, modular content intelligence platform featuring a separated **Frontend** (Next.js, TypeScript, Redux Toolkit, Tailwind CSS) and **Backend** (Node.js, Express, TypeScript) architecture.
+A full-stack, modular content intelligence platform built for the Frontend / Full-Stack SDE assignment. AuraPulse aggregates real-time news headlines, cinema releases, and community social trends into an adaptive, explainable recommendation feed.
+
+Built with a cleanly decoupled architecture:
+- **Frontend**: Next.js 16 (App Router), React 19, TypeScript, Redux Toolkit, RTK Query, Tailwind CSS, `@dnd-kit`.
+- **Backend**: Node.js, Express, TypeScript, JWT (bcrypt + HS256), NewsAPI & Watchmode Cinema integrations with resilient offline cache.
 
 ---
 
-## 🏗️ Architecture Overview
+## 🌟 7 Core Differentiators & Killer Features
 
-The codebase is organized into independent `frontend` and `backend` modules:
+Rather than building 20 superficial components, AuraPulse is engineered around **strong, production-grade differentiators**:
+
+### 1. 🧠 Explainable Personalization ("Why am I seeing this?")
+- Every card includes a dedicated **"Why this?"** inspector.
+- Opens an explainability breakdown displaying exact mathematical scoring:
+  - **Category Alignment** (Up to 45 pts): Matches active priorities (e.g. AI, Technology).
+  - **Interaction Affinity** (Up to 15 pts): Dynamic bonus earned from user reading patterns.
+  - **Recency Decay** (Up to 25 pts): Freshness weighting from publication timestamp.
+  - **Authority & Engagement** (Up to 15 pts): Critical ratings (TMDB) or viral engagement.
+  - Transparent plain-English reasons (`✓ Top priority match`, `✓ High critical rating: 8.5/10`).
+
+### 2. 🎯 Adaptive Preference Scoring (Dynamic Engagement Engine)
+- Personalization is dynamic, not a static category filter.
+- Tracks real-time engagement telemetry:
+  - Story Opened / Clicked: `+3 pts`
+  - Story Favorited / Read Later: `+5 pts`
+  - 20-Second Quick Brief Viewed: `+2 pts`
+  - "Not Interested" Feedback: `-4 pts` (immediately hides card and lowers category affinity)
+- Click **"Adaptive Scoring"** in the toolbar to inspect your live interest evolution:
+  `AI 92%` • `Technology 78%` • `Finance 51%` • `Sports 18%`.
+
+### 3. 🔄 "Refresh My Perspective" (Anti-Bubble Diversity Mode)
+- One-click toggle: **↻ Refresh Perspective**.
+- Deliberately counters recommendation filter bubbles by altering ranking distribution:
+  - `40%` Cross-category discoveries outside standard preferences.
+  - `30%` High-velocity trending content across all topics.
+  - `30%` Tailored core preferences.
+- Displays an active perspective banner with one-click return to standard feed.
+
+### 4. 🧩 Content Diversity Score & Reading Analytics
+- Real-time **Feed Diversity Index (0–100)** calculated using Shannon entropy across active content categories.
+- Real-time **Estimated Reading Time** accrued across the feed (`~24 min total`).
+
+### 5. ⚡ 20-Second Executive Quick Brief
+- Click **⚡ Quick Brief** on any card.
+- Opens a concise popup presenting:
+  - 3 core executive takeaway bullets.
+  - Source publication & estimated reading duration.
+  - Quick action: *Save to Read Later* or *Read Full Source*.
+
+### 6. 🪄 Universal Command Palette (`Ctrl + K` / `Cmd + K`)
+- Keyboard-driven command hub for instant actions:
+  - Quick search across news, movies, and social posts.
+  - Toggle Dark / Light theme.
+  - Trigger "Refresh Perspective" mode.
+  - View Saved Favorites or Read Later backlog.
+  - Launch Feed Audit Report or Adaptive Telemetry.
+
+### 7. 🔔 Live Activity & Sync Notification Center
+- Bell icon in the header tracks real-time dashboard state.
+- Automatically records and notifies upon:
+  - Feed synchronization events with source metrics.
+  - Live interaction-driven adaptive weight changes.
+  - Perspective shifts and offline cache readiness.
+  - One-click "Mark All as Read" and "Clear All".
+
+---
+
+## 🏗️ Architecture & Directory Structure
 
 ```
 Assignement_sde/
-├── frontend/                   # Client application
+├── frontend/                   # Client application (Next.js 16 + RTK)
 │   ├── src/
-│   │   ├── app/                # Next.js App Router (pages & layouts)
-│   │   ├── components/         # Modular UI components (cards, feed, layout, modals)
-│   │   ├── hooks/              # Custom React hooks (e.g. useDebounce)
-│   │   ├── lib/                # Personalization & scoring algorithms
-│   │   ├── store/              # Redux Toolkit & RTK Query state management
-│   │   ├── tests/              # Vitest unit and integration test suite
-│   │   └── types/              # TypeScript interfaces and domain models
+│   │   ├── app/                # Next.js App Router (feed, login, favorites, settings)
+│   │   ├── components/
+│   │   │   ├── cards/          # ContentCard with Quick Brief, Why This, options
+│   │   │   ├── feed/           # FeedGrid, SortableCard (@dnd-kit drag-and-drop)
+│   │   │   ├── layout/         # Header, Sidebar, DashboardShell, NotificationBell
+│   │   │   ├── modals/         # ExplainabilityModal, QuickBriefModal, UserProfileModal, FeedReportModal
+│   │   │   └── ui/             # CommandPalette, EmptyState, SkeletonCard
+│   │   ├── hooks/              # useDebounce, custom hooks
+│   │   ├── lib/                # Personalization & Shannon entropy diversity math
+│   │   ├── store/              # Redux slices: preferences, favorites, adaptive, notifications, auth
+│   │   ├── tests/              # Vitest unit & integration test suites
+│   │   └── types/              # Domain models (ContentItem, UserPreferences)
+│   ├── .env.example
 │   ├── package.json
-│   ├── tsconfig.json
-│   └── next.config.ts
+│   └── tsconfig.json
 │
-├── backend/                    # REST API Service
+├── backend/                    # REST API Microservice (Express + TypeScript)
 │   ├── src/
-│   │   ├── controllers/        # Request handlers (feed, news, movies, social)
-│   │   ├── routes/             # Express route definitions
-│   │   ├── services/           # Data fetching and aggregation logic
-│   │   ├── data/               # Curated fallback and mock datasets
-│   │   ├── types/              # Backend TypeScript definitions
-│   │   └── server.ts           # Express server entry point with CORS
+│   │   ├── controllers/        # FeedController, AuthController
+│   │   ├── routes/             # Express routes (/api/feed, /api/auth, /api/movies, etc.)
+│   │   ├── services/           # NewsService (NewsAPI), MoviesService (Watchmode/TMDB), AuthService (JWT)
+│   │   ├── data/               # Curated fallback datasets (guarantees offline resilience)
+│   │   ├── types/              # Backend TypeScript types
+│   │   └── server.ts           # Express server with CORS & security headers
+│   ├── .env.example
 │   ├── package.json
 │   └── tsconfig.json
 │
@@ -40,107 +108,96 @@ Assignement_sde/
 
 ---
 
-## ⚡ Core Features
-
-1. **Multi-Source Aggregation**: Synthesizes News headlines, TMDB cinema recommendations, and social media posts into a unified feed.
-2. **Transparent Personalization Engine**: Calculates a composite relevance score (0–100) per item based on user topic preferences, recency, and authority. Every card includes a "Why this?" inspector detailing its score breakdown.
-3. **Interactive Feed Reordering**: Drag-and-drop sortable cards powered by `@dnd-kit` with layout persistence in Redux and `localStorage`.
-4. **Debounced Search**: Optimized 400ms debounced search filtering across titles, descriptions, hashtags, and authors.
-5. **JWT Authentication & Demo Mode**: Token-based user authentication (`/login`) with signed JWT tokens, role badges, and 1-click demo login.
-6. **Feed Analytics & Audit Report**: Built-in modal and downloadable JSON export detailing stream composition, topic distribution, and relevance metrics.
-7. **Favorites Library**: Bookmarking system with duplicate prevention and session persistence.
-8. **Customizable Density & Theming**: Switch between Comfortable, Compact, and Grid layouts with dark and light mode support.
-
----
-
-## 🔌 Backend API Specification
-
-| Method | Endpoint | Query / Body | Description |
-|---|---|---|---|
-| `GET` | `/api/health` | None | Service status and timestamp |
-| `POST` | `/api/auth/login` | `{ email, password }` | Authenticates user and returns signed JWT token |
-| `POST` | `/api/auth/register` | `{ name, email, password }` | Registers user and issues signed JWT token |
-| `GET` | `/api/auth/me` | `Authorization: Bearer <token>` | Validates token and returns user profile |
-| `GET` | `/api/feed` | `q` (string), `category` (string), `type` (string) | Aggregated, filtered multi-source feed |
-| `GET` | `/api/news` | `category` (string), `q` (string) | News articles with live API or fallback |
-| `GET` | `/api/movies` | `q` (string) | TMDB movie recommendations or fallback |
-| `GET` | `/api/social` | `hashtag` (string), `q` (string) | Structured social posts |
-
----
-
-## 🚀 Getting Started
+## 🚀 Quick Start Guide
 
 ### 1. Prerequisites
 - **Node.js**: v18.0.0 or higher (v24 LTS recommended)
 - **npm**: v9.0.0 or higher
 
-### 2. Installation
-Install all dependencies across both services from the root folder:
+### 2. Install Dependencies
+Run from the root workspace directory:
 ```bash
 npm run install:all
 ```
+*(Or install in `frontend` with `npm install --legacy-peer-deps` and `backend` with `npm install`)*.
 
-Alternatively, install individually:
-```bash
-# Frontend
-cd frontend
-npm install --legacy-peer-deps
+### 3. Configure Environment Keys
+API keys are already pre-configured in local `.env` files for immediate use, or you can supply your own:
 
-# Backend
-cd ../backend
-npm install
-```
-
-### 3. Environment Configuration (Optional)
-Both services contain `.env.example` templates. External API keys are optional; the application includes high-fidelity fallback datasets to guarantee continuous operation without external dependencies.
+- **Frontend** (`frontend/.env.local`):
+  ```env
+  NEWS_API_KEY=d82cb2bae3b745b58800f519dda72040
+  MOVIE_API_KEY=kGkzHU6HoQDcNpZv4zAMB0yyy0EmN9bkg5zQbm9s
+  WATCHMODE_API_KEY=kGkzHU6HoQDcNpZv4zAMB0yyy0EmN9bkg5zQbm9s
+  NEXT_PUBLIC_API_URL=http://localhost:5000/api
+  BACKEND_URL=http://localhost:5000
+  ```
 
 - **Backend** (`backend/.env`):
   ```env
   PORT=5000
-  NEWS_API_KEY=your_news_api_key_here
-  TMDB_API_KEY=your_tmdb_api_key_here
+  NEWS_API_KEY=d82cb2bae3b745b58800f519dda72040
+  MOVIE_API_KEY=kGkzHU6HoQDcNpZv4zAMB0yyy0EmN9bkg5zQbm9s
+  WATCHMODE_API_KEY=kGkzHU6HoQDcNpZv4zAMB0yyy0EmN9bkg5zQbm9s
+  JWT_SECRET=aurapulse-jwt-secret-key-2026-production
   ```
 
-### 4. Running the Application
+*Note: All API keys are consumed strictly via `process.env` and never hardcoded in client source code. If offline or rate-limited, the application gracefully activates its high-fidelity curated cache.*
 
-You can run both services concurrently or individually from the root directory:
+### 4. Run the Application
 
-#### Run Backend (Port 5000):
+Start both backend and frontend from the root folder:
+
 ```bash
+# Terminal 1: Run Backend (Port 5000)
 npm run dev:backend
-```
 
-#### Run Frontend (Port 3000):
-```bash
+# Terminal 2: Run Frontend (Port 3000)
 npm run dev:frontend
 ```
 
-Once started:
-- **Frontend Application**: [http://localhost:3000](http://localhost:3000)
-- **Backend API**: [http://localhost:5000/api/health](http://localhost:5000/api/health)
+Once running:
+- **Dashboard Application**: [http://localhost:3000](http://localhost:3000)
+- **Backend Health Check**: [http://localhost:5000/api/health](http://localhost:5000/api/health)
+- **Default Evaluator Demo Account**: `uthej@aurapulse.io` / `password123` (or click 1-click Demo Sign In)
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing Suite
 
-The test suite covers algorithmic scoring, Redux state transitions, custom hooks, and UI edge cases:
+A comprehensive test suite of **26 automated unit and integration tests** verifies personalization logic, state slices, and UI interactions:
 
 ```bash
-# Run all unit and integration tests
+# Run all tests via Vitest
 npm test
 ```
 
-### Test Coverage Highlights:
-- `personalization.test.ts`: Scoring calculation, explainability reasons, and custom sort order.
-- `preferencesSlice.test.ts`: Category selection, minimum category safety rule, theme toggle.
-- `favoritesSlice.test.ts`: Bookmark toggle, duplicate prevention, and bulk clear.
-- `useDebounce.test.ts`: Search debounce timing and value stabilization.
-- `EmptyState.test.tsx`: Empty state messages and callback actions.
+### Test Suites Included:
+- `personalization.test.ts`: Deterministic scoring calculation, explainability reasons, drag-and-drop sort order.
+- `adaptiveSlice.test.ts`: Interaction affinity updates, negative feedback penalty, read later toggles, perspective shifts.
+- `notificationSlice.test.ts`: Notification queuing, read flags, and event clearing.
+- `preferencesSlice.test.ts`: Category selection, minimum safety rule, theme switches.
+- `favoritesSlice.test.ts`: Bookmark toggling, duplicate prevention, bulk clearing.
+- `useDebounce.test.ts`: 400ms search input stabilization.
+- `EmptyState.test.tsx`: Component rendering and filter reset callbacks.
 
 ---
 
-## 🛠️ Tech Stack Summary
+## 🔌 API Specification
 
-- **Frontend**: React 19, Next.js 16, TypeScript, Redux Toolkit, RTK Query, Tailwind CSS, `@dnd-kit`, Lucide Icons
-- **Backend**: Node.js, Express, TypeScript, CORS, Dotenv
-- **Testing**: Vitest, React Testing Library, JSDOM
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/health` | Service status, uptime, and system timestamp |
+| `POST` | `/api/auth/login` | Authenticates user credentials and issues signed JWT |
+| `POST` | `/api/auth/register` | Registers user profile and issues JWT |
+| `GET` | `/api/auth/me` | Validates JWT bearer token and returns profile |
+| `GET` | `/api/feed` | Unified, ranked multi-source stream (`q`, `category`, `type`) |
+| `GET` | `/api/news` | NewsAPI integration with US top-headlines and search |
+| `GET` | `/api/movies` | Watchmode/TMDB cinema releases with streaming provider links |
+| `GET` | `/api/social` | Structured social pulse discussion stream |
+
+---
+
+## 🛡️ License & Submission Context
+Developed for the **Software Development Engineer (SDE) Intern - Frontend Development Assignment**.
+Designed and implemented with modern clean code practices, production state management, and explainable AI-style algorithmic scoring.

@@ -10,6 +10,8 @@ import {
 } from "@/store/preferencesSlice";
 import { ViewMode } from "@/types/content";
 import { UserProfileModal } from "@/components/modals/UserProfileModal";
+import { NotificationBell } from "./NotificationBell";
+import { CommandPalette } from "../ui/CommandPalette";
 import {
   Search,
   X,
@@ -21,6 +23,7 @@ import {
   Menu,
   LogIn,
   User as UserIcon,
+  Command,
 } from "lucide-react";
 
 interface HeaderProps {
@@ -42,6 +45,18 @@ export function Header({
 
   const [inputVal, setInputVal] = useState(searchQuery);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
     setInputVal(searchQuery);
@@ -93,13 +108,22 @@ export function Header({
               placeholder="Search news, movies, tweets, hashtags..."
               className="w-full pl-10 pr-9 py-2 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-transparent focus:border-blue-500/50 focus:bg-white dark:focus:bg-slate-900 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-hidden transition-all shadow-inner"
             />
-            {inputVal && (
+            {inputVal ? (
               <button
                 onClick={handleClear}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                 aria-label="Clear search"
               >
                 <X className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsCommandPaletteOpen(true)}
+                className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-200/70 dark:bg-slate-700/70 text-[10px] font-mono font-semibold text-slate-500 dark:text-slate-400 absolute right-2.5 top-2.5 cursor-pointer hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                title="Open Command Palette (Ctrl+K)"
+              >
+                <span>⌘K</span>
               </button>
             )}
           </div>
@@ -162,6 +186,9 @@ export function Header({
             </button>
           </div>
 
+          {/* Notification Activity Center */}
+          <NotificationBell />
+
           {/* Dark / Light Mode Toggle */}
           <button
             onClick={handleThemeToggle}
@@ -213,6 +240,12 @@ export function Header({
       <UserProfileModal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
+      />
+
+      {/* Command Palette (Ctrl+K) */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
       />
     </header>
   );

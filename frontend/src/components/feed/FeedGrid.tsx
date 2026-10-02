@@ -22,6 +22,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setCustomCardOrder } from "@/store/preferencesSlice";
 import { SortableCard } from "./SortableCard";
 import { ExplainabilityModal } from "@/components/modals/ExplainabilityModal";
+import { QuickBriefModal } from "@/components/modals/QuickBriefModal";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
 import { Sparkles, SlidersHorizontal, ArrowUpDown } from "lucide-react";
@@ -45,6 +46,7 @@ export function FeedGrid({
 }: FeedGridProps) {
   const dispatch = useAppDispatch();
   const [selectedExplainItem, setSelectedExplainItem] = useState<ContentItem | null>(null);
+  const [selectedBriefItem, setSelectedBriefItem] = useState<ContentItem | null>(null);
 
   // DnD Sensors: 5px movement required so button clicks work without triggering drag
   const sensors = useSensors(
@@ -144,6 +146,7 @@ export function FeedGrid({
                 item={item}
                 viewMode={viewMode}
                 onExplain={(it) => setSelectedExplainItem(it)}
+                onQuickBrief={(it) => setSelectedBriefItem(it)}
               />
             ))}
           </div>
@@ -154,6 +157,12 @@ export function FeedGrid({
       <ExplainabilityModal
         item={selectedExplainItem}
         onClose={() => setSelectedExplainItem(null)}
+      />
+
+      {/* 20-Second Quick Brief Modal */}
+      <QuickBriefModal
+        item={selectedBriefItem}
+        onClose={() => setSelectedBriefItem(null)}
       />
     </div>
   );

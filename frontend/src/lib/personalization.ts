@@ -6,35 +6,61 @@ import { ContentItem, UserPreferences, ScoreExplanation } from "@/types/content"
  */
 export function calculatePersonalizationScore(
   item: ContentItem,
-  preferences: UserPreferences
+  preferences: UserPreferences,
+  adaptiveWeights?: Record<string, number>,
+  isPerspectiveMode?: boolean
 ): ScoreExplanation {
   let categoryScore = 0;
   let recencyScore = 0;
   let engagementScore = 0;
   const reasons: string[] = [];
 
-  // 1. Category Alignment (Up to 45 pts)
-  const isPreferredCategory = preferences.categories.includes(item.category);
-  const isPrimaryCategory = preferences.categories[0] === item.category;
-
-  if (isPrimaryCategory) {
-    categoryScore = 45;
-    reasons.push(`Top match for your #1 priority topic: "${capitalize(item.category)}"`);
-  } else if (isPreferredCategory) {
-    categoryScore = 35;
-    reasons.push(`Matches your active interest in "${capitalize(item.category)}"`);
+  // Perspective Mode Handling
+  if (isPerspectiveMode) {
+    const isOutsidePreference = !preferences.categories.includes(item.category);
+    if (isOutsidePreference) {
+      categoryScore = 42;
+      reasons.push(`✓ Perspective Shift: Discovering diverse "${capitalize(item.category)}" outside your standard bubble`);
+    } else {
+      categoryScore = 28;
+      reasons.push(`✓ Perspective Shift: Balanced preferred topic "${capitalize(item.category)}"`);
+    }
   } else {
-    categoryScore = 10;
-    reasons.push(`Discovered under "${capitalize(item.category)}" for feed diversity`);
+    // Standard Category Alignment (Up to 40 pts)
+    const isPreferredCategory = preferences.categories.includes(item.category);
+    const isPrimaryCategory = preferences.categories[0] === item.category;
+
+    if (isPrimaryCategory) {
+      categoryScore = 45;
+      reasons.push(`✓ Top priority topic match: "${capitalize(item.category)}"`);
+    } else if (isPreferredCategory) {
+      categoryScore = 35;
+      reasons.push(`✓ Matches your active "${capitalize(item.category)}" preference`);
+    } else {
+      categoryScore = 10;
+      reasons.push(`✓ Cross-category discovery: "${capitalize(item.category)}"`);
+    }
+
+    // Adaptive Affinity Boost from user interactions (Up to 15 pts)
+    if (adaptiveWeights && adaptiveWeights[item.category] !== undefined) {
+      const weight = adaptiveWeights[item.category];
+      if (weight > 50) {
+        const bonus = Math.min(15, Math.round((weight - 50) / 3));
+        categoryScore += bonus;
+        reasons.push(`✓ Interaction affinity (+${bonus} pts): High engagement with ${capitalize(item.category)}`);
+      } else if (weight < 25) {
+        categoryScore = Math.max(5, categoryScore - 8);
+        reasons.push(`✓ Reduced weight: Low engagement in ${capitalize(item.category)}`);
+      }
+    }
   }
 
   // 2. Content Type Alignment (Up to 15 pts)
   const isTypeEnabled = preferences.contentTypes.includes(item.type);
   if (!isTypeEnabled) {
-    // If user disabled this type, penalize heavily
     categoryScore = Math.max(0, categoryScore - 20);
   } else {
-    reasons.push(`Included from your enabled "${item.type.toUpperCase()}" stream`);
+    reasons.push(`✓ Enabled stream: ${item.type.toUpperCase()}`);
   }
 
   // 3. Recency Decay (Up to 25 pts)
@@ -44,37 +70,37 @@ export function calculatePersonalizationScore(
 
   if (ageInHours <= 4) {
     recencyScore = 25;
-    reasons.push("Freshly published within the last 4 hours");
+    reasons.push("✓ Freshly published within 4 hours");
   } else if (ageInHours <= 24) {
     recencyScore = 20;
-    reasons.push("Trending within the past 24 hours");
+    reasons.push("✓ Trending within the past 24 hours");
   } else if (ageInHours <= 72) {
     recencyScore = 12;
-    reasons.push("Recent story from the last 3 days");
+    reasons.push("✓ Recent release from this week");
   } else {
     recencyScore = 6;
   }
 
   // 4. Engagement & Authority Boost (Up to 15 pts)
   if (item.type === "movie" && item.metadata?.rating) {
-    const rating = item.metadata.rating; // e.g. 8.4
+    const rating = item.metadata.rating;
     engagementScore = Math.min(15, Math.round((rating / 10) * 15));
     if (rating >= 7.5) {
-      reasons.push(`Critically acclaimed (TMDB Rating: ${rating.toFixed(1)}/10)`);
+      reasons.push(`✓ High critical rating: ${rating.toFixed(1)}/10`);
     }
   } else if (item.type === "social" && item.metadata?.likes) {
     const likes = item.metadata.likes;
     engagementScore = likes > 1000 ? 15 : likes > 500 ? 12 : likes > 100 ? 8 : 4;
     if (likes > 500) {
-      reasons.push(`High community engagement (${likes.toLocaleString()} likes)`);
+      reasons.push(`✓ Viral social engagement (${likes.toLocaleString()} likes)`);
     }
   } else if (item.type === "news") {
     if (item.metadata?.isBreaking) {
       engagementScore = 15;
-      reasons.push("High priority: Breaking news bulletin");
+      reasons.push("✓ High priority: Breaking bulletin");
     } else {
       engagementScore = 10;
-      reasons.push(`Verified publication: ${item.source}`);
+      reasons.push(`✓ Verified authority source: ${item.source}`);
     }
   }
 
@@ -90,16 +116,63 @@ export function calculatePersonalizationScore(
 }
 
 /**
+ * Calculates the feed diversity score (0-100) based on category entropy.
+ */
+export function calculateFeedDiversity(items: ContentItem[]): number {
+  if (!items || items.length === 0) return 0;
+  const counts: Record<string, number> = {};
+  items.forEach((item) => {
+    counts[item.category] = (counts[item.category] || 0) + 1;
+  });
+
+  const total = items.length;
+  const distinctCategories = Object.keys(counts).length;
+  if (distinctCategories <= 1) return 20;
+
+  // Calculate Shannon entropy normalized to 100
+  let entropy = 0;
+  for (const cat in counts) {
+    const p = counts[cat] / total;
+    entropy -= p * Math.log2(p);
+  }
+
+  // Max entropy for 5 categories is log2(5) ~ 2.32
+  const maxEntropy = Math.log2(5);
+  const normalized = Math.min(100, Math.round((entropy / maxEntropy) * 100));
+  return Math.max(35, normalized);
+}
+
+/**
+ * Calculates estimated total reading time for current feed.
+ */
+export function calculateTotalReadingTime(items: ContentItem[]): number {
+  if (!items || items.length === 0) return 0;
+  return items.reduce((total, item) => {
+    if (item.type === "movie") return total + 1;
+    if (item.type === "social") return total + 1;
+    const words = (item.description || "").split(/\s+/).length + 150;
+    return total + Math.max(1, Math.round(words / 200));
+  }, 0);
+}
+
+/**
  * Enhances a list of content items with personalization scores and sorts them.
- * If user has custom card order specified, items matching that order come first.
+ * Incorporates optional adaptive weights and perspective shift mode.
  */
 export function rankContentItems(
   items: ContentItem[],
-  preferences: UserPreferences
+  preferences: UserPreferences,
+  adaptiveWeights?: Record<string, number>,
+  isPerspectiveMode?: boolean
 ): ContentItem[] {
   // Score all items
   const scoredItems = items.map((item) => {
-    const explanation = calculatePersonalizationScore(item, preferences);
+    const explanation = calculatePersonalizationScore(
+      item,
+      preferences,
+      adaptiveWeights,
+      isPerspectiveMode
+    );
     return {
       ...item,
       score: explanation.totalScore,
@@ -107,8 +180,12 @@ export function rankContentItems(
     };
   });
 
-  // If there's custom card order from drag-and-drop, apply it
-  if (preferences.customCardOrder && preferences.customCardOrder.length > 0) {
+  // If there's custom card order from drag-and-drop, apply it (unless in perspective mode)
+  if (
+    !isPerspectiveMode &&
+    preferences.customCardOrder &&
+    preferences.customCardOrder.length > 0
+  ) {
     const orderMap = new Map<string, number>();
     preferences.customCardOrder.forEach((id, index) => {
       orderMap.set(id, index);
@@ -121,7 +198,6 @@ export function rankContentItems(
       if (orderA !== orderB) {
         return orderA - orderB;
       }
-      // If neither is in custom order or tied, sort by score descending
       return (b.score || 0) - (a.score || 0);
     });
   }
