@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   toggleDarkMode,
@@ -13,12 +14,12 @@ import {
   X,
   Sun,
   Moon,
-  Radio,
   LayoutGrid,
   List,
   Columns3,
   Menu,
-  Sparkles,
+  LogIn,
+  User as UserIcon,
 } from "lucide-react";
 
 interface HeaderProps {
@@ -36,6 +37,7 @@ export function Header({
   const { darkMode, viewMode, liveUpdatesEnabled, userName } = useAppSelector(
     (state) => state.preferences
   );
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   const [inputVal, setInputVal] = useState(searchQuery);
 
@@ -55,16 +57,17 @@ export function Header({
   };
 
   const handleThemeToggle = () => {
+    const nextMode = !darkMode;
     dispatch(toggleDarkMode());
-    if (darkMode) {
-      document.documentElement.classList.remove("dark");
-    } else {
+    if (nextMode) {
       document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
     }
   };
 
   return (
-    <header className="sticky top-0 z-30 w-full glass-panel border-b border-slate-200/80 dark:border-slate-800/80 px-4 lg:px-8 py-3.5 transition-colors">
+    <header className="sticky top-0 z-30 w-full glass-panel border-b border-slate-200/80 dark:border-slate-800/80 px-4 lg:px-8 py-3 transition-colors">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Left: Mobile trigger & Search Bar */}
         <div className="flex items-center gap-3 flex-1 max-w-xl">
@@ -157,11 +160,11 @@ export function Header({
             </button>
           </div>
 
-          {/* Dark Mode Toggle */}
+          {/* Dark / Light Mode Toggle */}
           <button
             onClick={handleThemeToggle}
             title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-            className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/60 dark:border-slate-700/60 transition-colors"
+            className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/60 dark:border-slate-700/60 transition-colors cursor-pointer"
             aria-label="Toggle theme"
           >
             {darkMode ? (
@@ -171,20 +174,34 @@ export function Header({
             )}
           </button>
 
-          {/* User Profile Avatar */}
-          <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-bold text-xs flex items-center justify-center shadow-sm">
-              {userName.charAt(0).toUpperCase()}
-            </div>
-            <div className="hidden xl:block text-left">
-              <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 leading-tight">
-                {userName}
+          {/* User Profile Avatar / Sign In Link */}
+          {isAuthenticated && user ? (
+            <Link
+              href="/settings"
+              className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800 group"
+              title="Account Settings"
+            >
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-bold text-xs flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                {user.name.charAt(0).toUpperCase()}
               </div>
-              <div className="text-[10px] text-emerald-500 font-medium leading-none">
-                Active Pro
+              <div className="hidden xl:block text-left">
+                <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 leading-tight">
+                  {user.name}
+                </div>
+                <div className="text-[10px] text-emerald-500 font-medium leading-none">
+                  JWT Verified
+                </div>
               </div>
-            </div>
-          </div>
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-xs"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Sign In</span>
+            </Link>
+          )}
         </div>
       </div>
     </header>

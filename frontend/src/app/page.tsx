@@ -13,6 +13,7 @@ import {
   resetPreferences,
 } from "@/store/preferencesSlice";
 import { ContentCategory, ContentType } from "@/types/content";
+import { FeedReportModal } from "@/components/modals/FeedReportModal";
 import {
   Sparkles,
   SlidersHorizontal,
@@ -22,6 +23,7 @@ import {
   MessageSquare,
   RefreshCw,
   BellRing,
+  BarChart3,
 } from "lucide-react";
 
 const ALL_CATEGORIES: { id: ContentCategory; label: string }[] = [
@@ -40,6 +42,7 @@ export default function DashboardPage() {
 
   const [activeTypeTab, setActiveTypeTab] = useState<string>("all");
   const [liveToast, setLiveToast] = useState<string | null>(null);
+  const [isFeedReportOpen, setIsFeedReportOpen] = useState(false);
 
   // RTK Query unified feed
   const { data: rawFeed, isLoading, isError, refetch } = useGetFeedQuery({
@@ -182,7 +185,7 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {/* Category Chips Switcher */}
+          {/* Category Chips Switcher & Feed Report Button */}
           <div className="flex flex-wrap items-center gap-1.5">
             {ALL_CATEGORIES.map((cat) => {
               const isSelected = preferences.categories.includes(cat.id);
@@ -200,6 +203,14 @@ export default function DashboardPage() {
                 </button>
               );
             })}
+
+            <button
+              onClick={() => setIsFeedReportOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer"
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span>Feed Report</span>
+            </button>
           </div>
         </div>
 
@@ -224,6 +235,14 @@ export default function DashboardPage() {
           isLoading={isLoading}
           viewMode={preferences.viewMode}
           onResetFilters={handleResetFilters}
+        />
+
+        {/* Feed Report Modal */}
+        <FeedReportModal
+          isOpen={isFeedReportOpen}
+          onClose={() => setIsFeedReportOpen(false)}
+          items={filteredAndRanked}
+          preferences={preferences}
         />
       </div>
     </DashboardShell>

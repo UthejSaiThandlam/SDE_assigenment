@@ -1,28 +1,30 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { toggleCategory, toggleContentType } from "@/store/preferencesSlice";
-import { ContentCategory, ContentType } from "@/types/content";
+import { toggleCategory } from "@/store/preferencesSlice";
+import { logout } from "@/store/authSlice";
+import { ContentCategory } from "@/types/content";
+import { FeedReportModal } from "@/components/modals/FeedReportModal";
+import { useGetFeedQuery } from "@/store/contentApi";
 import {
   Compass,
   TrendingUp,
   Bookmark,
   Settings,
   Sparkles,
-  Layers,
-  Radio,
-  Film,
-  MessageSquare,
+  BarChart3,
   Cpu,
   Brain,
   DollarSign,
   Trophy,
   Clapperboard,
   X,
-  ShieldCheck,
+  LogOut,
+  LogIn,
+  User as UserIcon,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -31,24 +33,30 @@ interface SidebarProps {
 }
 
 const CATEGORIES: { id: ContentCategory; label: string; icon: React.ReactNode }[] = [
-  { id: "technology", label: "Technology", icon: <Cpu className="w-3.5 h-3.5" /> },
-  { id: "ai", label: "AI & Agents", icon: <Brain className="w-3.5 h-3.5" /> },
-  { id: "finance", label: "Finance & Crypto", icon: <DollarSign className="w-3.5 h-3.5" /> },
-  { id: "sports", label: "Sports & F1", icon: <Trophy className="w-3.5 h-3.5" /> },
-  { id: "entertainment", label: "Cinema & Arts", icon: <Clapperboard className="w-3.5 h-3.5" /> },
-];
-
-const CONTENT_TYPES: { id: ContentType; label: string; icon: React.ReactNode }[] = [
-  { id: "news", label: "News Articles", icon: <Radio className="w-3.5 h-3.5" /> },
-  { id: "movie", label: "Movie Picks", icon: <Film className="w-3.5 h-3.5" /> },
-  { id: "social", label: "Social Feeds", icon: <MessageSquare className="w-3.5 h-3.5" /> },
+  { id: "technology", label: "Tech", icon: <Cpu className="w-3 h-3" /> },
+  { id: "ai", label: "AI", icon: <Brain className="w-3 h-3" /> },
+  { id: "finance", label: "Finance", icon: <DollarSign className="w-3 h-3" /> },
+  { id: "sports", label: "Sports", icon: <Trophy className="w-3 h-3" /> },
+  { id: "entertainment", label: "Cinema", icon: <Clapperboard className="w-3 h-3" /> },
 ];
 
 export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const dispatch = useAppDispatch();
-  const { categories, contentTypes } = useAppSelector((state) => state.preferences);
+  const preferences = useAppSelector((state) => state.preferences);
   const favorites = useAppSelector((state) => state.favorites.items);
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+
+  const [isReportOpen, setIsReportOpen] = useState(false);
+
+  // Load feed items for report
+  const { data: rawFeed } = useGetFeedQuery();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    router.push("/login");
+  };
 
   const navLinks = [
     { href: "/", label: "Personalized Feed", icon: <Compass className="w-4 h-4" /> },
@@ -59,24 +67,21 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
       icon: <Bookmark className="w-4 h-4" />,
       badge: favorites.length > 0 ? favorites.length : undefined,
     },
-    { href: "/settings", label: "Preferences & State", icon: <Settings className="w-4 h-4" /> },
+    { href: "/settings", label: "Preferences", icon: <Settings className="w-4 h-4" /> },
   ];
 
   const content = (
-    <aside className="w-64 h-full flex flex-col justify-between py-6 px-4 bg-white/90 dark:bg-slate-900/90 border-r border-slate-200/80 dark:border-slate-800/80 backdrop-blur-xl">
-      <div className="space-y-6">
+    <aside className="w-64 h-screen max-h-screen overflow-hidden flex flex-col justify-between py-4 px-3.5 bg-white/95 dark:bg-slate-900/95 border-r border-slate-200/80 dark:border-slate-800/80 backdrop-blur-xl transition-colors">
+      <div className="space-y-4">
         {/* Brand Logo */}
-        <div className="flex items-center justify-between px-2">
+        <div className="flex items-center justify-between px-2 pt-1">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
-              <Sparkles className="w-5 h-5" />
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
+              <Sparkles className="w-4 h-4" />
             </div>
             <div>
               <span className="font-bold text-base tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-1">
                 Aura<span className="text-blue-600 dark:text-blue-400">Pulse</span>
-              </span>
-              <span className="text-[10px] block font-medium text-slate-400 -mt-1 tracking-wider uppercase">
-                Content Engine
               </span>
             </div>
           </Link>
@@ -86,14 +91,14 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
               onClick={onCloseMobile}
               className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
         {/* Main Navigation */}
         <div className="space-y-1">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2 mb-2">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2 mb-1.5">
             Navigation
           </div>
           {navLinks.map((link) => {
@@ -103,10 +108,10 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
                 key={link.href}
                 href={link.href}
                 onClick={onCloseMobile}
-                className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
+                className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
                   isActive
                     ? "bg-blue-600 text-white shadow-sm shadow-blue-500/30"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-100"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-slate-100"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -127,40 +132,50 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
               </Link>
             );
           })}
+
+          {/* Feed Report Button */}
+          <button
+            type="button"
+            onClick={() => setIsReportOpen(true)}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-slate-100 transition-all text-left"
+          >
+            <BarChart3 className="w-4 h-4 text-emerald-500" />
+            <span>Feed Report</span>
+          </button>
         </div>
 
-        {/* Priority Topics Filter */}
-        <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+        {/* Priority Topics (Compact 2-column Grid) */}
+        <div className="space-y-2 pt-3 border-t border-slate-100 dark:border-slate-800/80">
           <div className="flex items-center justify-between px-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
               Active Topics
             </span>
-            <span className="text-[10px] text-blue-500 font-medium">
-              {categories.length} selected
+            <span className="text-[10px] text-blue-500 font-semibold">
+              {preferences.categories.length} on
             </span>
           </div>
 
-          <div className="space-y-1">
+          <div className="grid grid-cols-2 gap-1.5">
             {CATEGORIES.map((cat) => {
-              const isSelected = categories.includes(cat.id);
+              const isSelected = preferences.categories.includes(cat.id);
               return (
                 <button
                   key={cat.id}
                   onClick={() => dispatch(toggleCategory(cat.id))}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                     isSelected
-                      ? "text-blue-700 dark:text-blue-300 bg-blue-50/80 dark:bg-blue-950/40"
-                      : "text-slate-500 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/40"
+                      ? "bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 font-semibold"
+                      : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                   }`}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 truncate">
                     <span className={isSelected ? "text-blue-600 dark:text-blue-400" : "text-slate-400"}>
                       {cat.icon}
                     </span>
-                    <span>{cat.label}</span>
+                    <span className="truncate">{cat.label}</span>
                   </div>
                   <span
-                    className={`w-1.5 h-1.5 rounded-full ${
+                    className={`w-1.5 h-1.5 rounded-full shrink-0 ml-1 ${
                       isSelected ? "bg-blue-600 dark:bg-blue-400" : "bg-transparent"
                     }`}
                   />
@@ -169,68 +184,63 @@ export function Sidebar({ isOpenMobile, onCloseMobile }: SidebarProps) {
             })}
           </div>
         </div>
-
-        {/* Content Streams Filter */}
-        <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">
-            Sources
-          </div>
-          <div className="space-y-1">
-            {CONTENT_TYPES.map((type) => {
-              const isEnabled = contentTypes.includes(type.id);
-              return (
-                <button
-                  key={type.id}
-                  onClick={() => dispatch(toggleContentType(type.id))}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    isEnabled
-                      ? "text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/70"
-                      : "text-slate-400 line-through opacity-60"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    {type.icon}
-                    <span>{type.label}</span>
-                  </div>
-                  <span
-                    className={`text-[10px] font-bold px-1 rounded ${
-                      isEnabled
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-slate-400"
-                    }`}
-                  >
-                    {isEnabled ? "ON" : "OFF"}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
       </div>
 
-      {/* Footer Info Badge */}
-      <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 px-2">
-        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Architecture Shield</span>
+      {/* Footer User / Authentication Section */}
+      <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 px-1">
+        {isAuthenticated && user ? (
+          <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+                  {user.name}
+                </div>
+                <div className="text-[10px] text-emerald-500 font-medium truncate">
+                  JWT Verified
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleLogout}
+              title="Sign Out"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-normal">
-            Multi-source fail-safe engine with live RTK Query caching & local state sync.
-          </p>
-        </div>
+        ) : (
+          <Link
+            href="/login"
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 text-xs font-semibold transition-colors shadow-xs"
+          >
+            <LogIn className="w-3.5 h-3.5" />
+            <span>Sign In / Demo</span>
+          </Link>
+        )}
       </div>
+
+      {/* Feed Report Modal */}
+      <FeedReportModal
+        isOpen={isReportOpen}
+        onClose={() => setIsReportOpen(false)}
+        items={rawFeed || []}
+        preferences={preferences}
+      />
     </aside>
   );
 
   return (
     <>
-      {/* Desktop Persistent Sidebar */}
-      <div className="hidden lg:block fixed inset-y-0 left-0 z-40 w-64">
+      {/* Desktop Persistent Sidebar (Zero Scroll, Strict h-screen) */}
+      <div className="hidden lg:block fixed inset-y-0 left-0 z-40 w-64 h-screen max-h-screen overflow-hidden">
         {content}
       </div>
 
-      {/* Mobile Backdrop & Drawer */}
+      {/* Mobile Drawer */}
       {isOpenMobile && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div

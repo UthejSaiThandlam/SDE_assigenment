@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Provider } from "react-redux";
 import { store } from "./store";
 import {
@@ -8,10 +8,24 @@ import {
   setHydratedPreferences,
 } from "./preferencesSlice";
 import { FAVORITES_STORAGE_KEY, setHydratedFavorites } from "./favoritesSlice";
+import { hydrateAuth } from "./authSlice";
+import { useAppSelector } from "./hooks";
+
+function ThemeSynchronizer() {
+  const darkMode = useAppSelector((state) => state.preferences.darkMode);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
+
+  return null;
+}
 
 export function ReduxProvider({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
     // 1. Hydrate Preferences
     try {
@@ -19,13 +33,12 @@ export function ReduxProvider({ children }: { children: React.ReactNode }) {
       if (savedPrefs) {
         const parsed = JSON.parse(savedPrefs);
         store.dispatch(setHydratedPreferences(parsed));
-        if (parsed.darkMode) {
+        if (parsed.darkMode !== false) {
           document.documentElement.classList.add("dark");
         } else {
           document.documentElement.classList.remove("dark");
         }
       } else {
-        // Default to dark mode
         document.documentElement.classList.add("dark");
       }
     } catch (e) {
@@ -42,11 +55,17 @@ export function ReduxProvider({ children }: { children: React.ReactNode }) {
       console.error("Hydration error for favorites:", e);
     }
 
-    setMounted(true);
+    // 3. Hydrate Auth
+    try {
+      store.dispatch(hydrateAuth());
+    } catch (e) {
+      console.error("Hydration error for auth:", e);
+    }
   }, []);
 
   return (
     <Provider store={store}>
+      <ThemeSynchronizer />
       {children}
     </Provider>
   );

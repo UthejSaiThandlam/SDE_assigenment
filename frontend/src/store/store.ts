@@ -1,12 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit";
 import preferencesReducer from "./preferencesSlice";
 import favoritesReducer from "./favoritesSlice";
+import authReducer from "./authSlice";
 import { contentApi } from "./contentApi";
 
 export const store = configureStore({
   reducer: {
     preferences: preferencesReducer,
     favorites: favoritesReducer,
+    auth: authReducer,
     [contentApi.reducerPath]: contentApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>

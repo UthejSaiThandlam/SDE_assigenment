@@ -6,6 +6,7 @@ import feedRoutes from "./routes/feedRoutes";
 import newsRoutes from "./routes/newsRoutes";
 import moviesRoutes from "./routes/moviesRoutes";
 import socialRoutes from "./routes/socialRoutes";
+import authRoutes from "./routes/authRoutes";
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.get("/api/health", (req, res) => {
 });
 
 // API Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/feed", feedRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/movies", moviesRoutes);
